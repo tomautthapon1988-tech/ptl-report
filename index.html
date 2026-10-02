@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ฟอร์มยอดขายพัทลุง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one narrow phone column of grouped entry sheets, sticky store bar on top, sticky status/send bar at bottom */
+:root{
+  --bg:#eef2f0; --surface:#ffffff; --surface-2:#f5f8f6; --line:#d6dfdb;
+  --fg:#16211d; --muted:#5b6b65; --accent:#0b7a5c; --accent-ink:#ffffff; --accent-soft:#dff1ea;
+  --bad:#c0362c; --bad-soft:#fbe5e2; --warn:#9a6400; --warn-soft:#fbf0d9; --ok:#0b7a5c;
+  --f-body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1513; --surface:#18211e; --surface-2:#1e2925; --line:#2c3a35;
+  --fg:#e6eeea; --muted:#94a69f; --accent:#3fc79c; --accent-ink:#06261c; --accent-soft:#15382d;
+  --bad:#ff8577; --bad-soft:#3a1c19; --warn:#f0bd5a; --warn-soft:#3a2d12; --ok:#3fc79c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --surface:#18211e; --surface-2:#1e2925; --line:#2c3a35;
+  --fg:#e6eeea; --muted:#94a69f; --accent:#3fc79c; --accent-ink:#06261c; --accent-soft:#15382d;
+  --bad:#ff8577; --bad-soft:#3a1c19; --warn:#f0bd5a; --warn-soft:#3a2d12; --ok:#3fc79c; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 120px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 10px;border-bottom:1px solid var(--line);display:grid;gap:10px}
+.title{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.title h1{font-size:17px;margin:0;font-weight:700}
+.title .date{font-family:var(--f-num);font-size:13px;color:var(--muted)}
+select,input[type=date],input[type=text],input[type=number],textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{font:inherit;font-weight:600;border:0;background:transparent;color:var(--muted);padding:8px 0;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.row2{display:grid;grid-template-columns:1fr 150px;gap:8px}
+section.sheet{margin-top:18px}
+.sheet h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px 4px;font-weight:600}
+.sheet .hint{font-size:12.5px;color:var(--muted);margin:-2px 4px 8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item.sub{padding-left:28px;background:var(--surface-2)}
+.item.sub2{padding-left:44px;background:var(--surface-2)}
+.item.total{background:var(--accent-soft)}
+.item.flag{box-shadow:inset 3px 0 0 var(--bad)}
+.lbl{flex:1;min-width:0}
+.lbl b{display:block;font-weight:600;font-size:15px}
+.item.sub .lbl b,.item.sub2 .lbl b{font-weight:500;font-size:14px}
+.meta{font-size:12px;color:var(--muted);font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.meta .p{color:var(--accent);font-weight:600}
+.step{display:flex;align-items:center;gap:4px;flex:none}
+.step button{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);font-size:20px;line-height:1;cursor:pointer}
+.step button:active{background:var(--accent-soft)}
+.step output{min-width:34px;text-align:center;font-family:var(--f-num);font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.auto{font-family:var(--f-num);font-size:18px;font-weight:600;min-width:118px;text-align:center;font-variant-numeric:tabular-nums}
+.auto small{display:block;font-family:var(--f-body);font-size:11px;font-weight:400;color:var(--muted)}
+.money{width:150px;flex:none;text-align:right;font-family:var(--f-num);font-size:17px;font-weight:600}
+.toggle{display:flex;gap:6px}
+.toggle button{font:inherit;font-weight:600;padding:8px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer}
+.toggle button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+details.base summary{cursor:pointer;padding:12px;font-weight:600}
+.basegrid{display:grid;grid-template-columns:1fr 110px;gap:6px 10px;padding:0 12px 12px;align-items:center;font-size:14px}
+.basegrid input{padding:6px 8px;text-align:right;font-family:var(--f-num)}
+.basegrid .h{grid-column:1/-1;font-size:12px;color:var(--muted);margin-top:8px;letter-spacing:.06em;text-transform:uppercase}
+.banner{margin-top:14px;padding:10px 12px;border-radius:12px;font-size:13.5px;background:var(--warn-soft);color:var(--fg);border:1px solid var(--warn);display:grid;gap:8px}
+.banner button{justify-self:start}
+.issues{display:grid;gap:6px;margin-top:8px}
+.issue{font-size:13.5px;padding:8px 10px;border-radius:10px}
+.issue.e{background:var(--bad-soft);color:var(--fg);border-left:3px solid var(--bad)}
+.issue.w{background:var(--warn-soft);color:var(--fg);border-left:3px solid var(--warn)}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:var(--accent);color:var(--accent-ink);text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line);font-weight:600}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.bar .in{max-width:560px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.bar .st{flex:1;min-width:0;font-size:13.5px;font-weight:600}
+.st.e{color:var(--bad)} .st.ok{color:var(--ok)} .st.w{color:var(--warn)}
+#out{margin-top:18px}
+#out pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;font-family:var(--f-num);font-size:12.5px;line-height:1.5;white-space:pre-wrap;overflow-x:auto;margin:8px 0}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.small{font-size:12.5px;color:var(--muted)}
+.linkish{background:none;border:0;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;padding:0}
+@media (prefers-reduced-motion:no-preference){.step button{transition:background .12s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="title"><h1>รีพอร์ตปิดร้าน OPPO พัทลุง</h1><span class="date" id="dateLbl"></span></div>
+    <div class="row2">
+      <select id="store" aria-label="เลือกชื่อ PC"></select>
+      <input type="date" id="date" aria-label="วันที่">
+    </div>
+  </div>
+  <div id="banner"></div>
+  <div id="form"></div>
+  <div id="out" hidden>
+    <div class="sheet"><h2>ข้อความพร้อมส่ง</h2></div>
+    <pre id="txt"></pre>
+    <div class="actions">
+      <button class="btn" id="copy">คัดลอกข้อความ</button>
+      <a class="btn ghost" id="line" href="#" target="_blank" rel="noopener">ส่งใน LINE</a>
+    </div>
+    <p class="small" id="copyMsg">ถ้ากดส่งใน LINE แล้วไม่เปิด ให้กดคัดลอก แล้วไปวางในกลุ่ม LINE เอง</p>
+  </div>
+</div>
+<div class="bar"><div class="in"><div class="st" id="status"></div><button class="btn" id="gen">สร้างข้อความ</button></div></div>
+
+<script>
+// ================= แก้เป้าตรงนี้ =================
+// หนึ่งบรรทัดต่อหนึ่งคน (ตัวเลขหน้าเครื่องหมาย : คือ PC Code ชื่อ PC อยู่ท้ายบรรทัด)
+// amount = เป้ายอดเงิน (บาท ไม่ต้องใส่ลูกน้ำ)  model = All Model  iot = All IOT  air5 = Air5 Series  find = Find Series
+// renoF = Reno16 F  renoStd = Reno16  renoPro = Reno16 Pro  a7pro = A7PRO  a7max = A7PRO max
+// reno / a7 = เป้ารวมของ Series ใช้เฉพาะตอนที่ยังไม่ได้ใส่เป้ารายรุ่น (ถ้าใส่เป้ารายรุ่นแล้ว เป้า Series = ผลรวมรายรุ่นให้อัตโนมัติ)
+// ร้านไหนไม่มีเป้ารุ่นไหน ให้ใส่ null
+const TARGETS={
+ "6501848":{amount:300000,model:93,iot:16,air5:10,find:2,reno:30,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Tawatchai Khaiem
+ "6602310":{amount:300000,model:58,iot:18,air5:10,find:3,reno:26,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Pilaiwan Duangsang
+ "6002390":{amount:300000,model:86,iot:15,air5:10,find:2,reno:null,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Arphorn Maneeon
+ "6801509":{amount:300000,model:45,iot:12,air5:6,find:2,reno:13,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Jinjuta Saete
+ "6600773":{amount:300000,model:40,iot:5,air5:2,find:2,reno:12,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Papapich Hmunnuey
+ "6600290":{amount:300000,model:30,iot:5,air5:2,find:1,reno:12,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Kodchakorn Bunchan
+ "6700872":{amount:300000,model:55,iot:15,air5:7,find:3,reno:25,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Athitiya Mueankhaw
+ "5701541":{amount:300000,model:40,iot:3,air5:2,find:1,reno:null,renoF:null,renoStd:null,renoPro:null,a7:8,a7pro:null,a7max:null}, // Namthip Yama
+ "6303015":{amount:300000,model:45,iot:12,air5:6,find:2,reno:13,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Supachai Kuromin
+ "6900809":{amount:300000,model:40,iot:14,air5:6,find:2,reno:13,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Chadapa Meansen
+ "6700147":{amount:300000,model:75,iot:28,air5:6,find:2,reno:32,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Porntip Damsanit
+ "5802105":{amount:300000,model:42,iot:12,air5:6,find:2,reno:15,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Yaowaroh Kasemsan
+ "6202946":{amount:300000,model:30,iot:3,air5:1,find:1,reno:8,renoF:null,renoStd:null,renoPro:null,a7:null,a7pro:null,a7max:null}, // Areeya Dachong
+ "TEST":{amount:300000,model:40,iot:10,air5:5,find:2,reno:10,renoF:null,renoStd:null,renoPro:null,a7:5,a7pro:null,a7max:null}, // AUTTHAPOL SRIJAN (ทดสอบ)
+};
+// ================================================
+// ===== ข้อมูล PC / ร้าน และยอดขาย OPPO วันที่ 1 (d1) และ 2 (d2) ต.ค. จากข้อมูล sell-out =====
+// ยอดคู่แข่งยังเป็น 0 รอเก็บย้อนหลัง
+// storeId = Store ID ที่ใช้ในรีพอร์ตปิดร้าน
+// hidden:true = ยังไม่อยู่ในระบบ ไม่แสดงในรายชื่อ (ลบ hidden:true ออกเมื่อต้องการให้กลับมาแสดง)
+const STORES=[
+ {id:"6501848",hidden:true,pcName:"Tawatchai Khaiem",storeId:"23806",name:"Sp mobile Comnet 2 (AIS Buddy)",d1:{},d2:{},pc:{o:1,v:1,s:1,hon:1}},
+ {id:"6602310",pcName:"Pilaiwan Duangsang",storeId:"7379",name:"IT CITY-LOTUS- PHATTHALUNG (S0260)",d1:{amount:51997,model:3,a7pro:2,renoStd:1},d2:{amount:52997,model:3,a7pro:1,renoStd:1,renoF:1},pc:{o:1,v:1}},
+ {id:"6002390",pcName:"Arphorn Maneeon",storeId:"7457",name:"32165 ASP BY SAENGTHAI (LOTUS PHATTHALUNG)",d1:{amount:6499,model:1},d2:{},pc:{o:1,v:1,s:1,r:1,m:1}},
+ {id:"6801509",pcName:"Jinjuta Saete",storeId:"1971",name:"ID1971 : BNM-Lotus Phatthalung",d1:{amount:8999,model:1},d2:{},pc:{o:1,v:1}},
+ {id:"6600773",pcName:"Papapich Hmunnuey",storeId:"21416",name:"True Shop Tesco Lotus Phattalung",d1:{},d2:{amount:15999,model:1,renoF:1},pc:{o:1,v:1,s:1}},
+ {id:"6600290",hidden:true,pcName:"Kodchakorn Bunchan",storeId:"28079",name:"Sp mobile Comnet 3 (AIS Buddy)",d1:{amount:19498,model:2,a7pro:1},d2:{},pc:{o:1}},
+ {id:"6700872",hidden:true,pcName:"Athitiya Mueankhaw",storeId:"2327",name:"ID2327 : BN-Lotus Phatthalung 2",d1:{amount:44497,model:3,renoStd:1},d2:{amount:23498,model:2,renoF:1},pc:{o:1,v:1,s:1,r:1,m:1,inf:1,hon:1,iph:2,oth:2}},
+ {id:"5701541",hidden:true,pcName:"Namthip Yama",storeId:"7021",name:"Telewiz Damrong Sirisawat Lotus Mae Khari",d1:{},d2:{},pc:{o:1,v:1,s:1,hon:1}},
+ {id:"6303015",hidden:true,pcName:"Supachai Kuromin",storeId:"7423",name:"Telewiz Damrong Sirisawat Lotus Mae Khari",d1:{},d2:{},pc:{o:1,v:1}},
+ {id:"6900809",pcName:"Chadapa Meansen",storeId:"22958",name:"ID773 : BN-Lotus-Phatthalung 2.1",d1:{amount:18999,model:1},d2:{amount:6499,model:1},pc:{o:1}},
+ {id:"6700147",hidden:true,pcName:"Porntip Damsanit",storeId:"30968",name:"OBS Lotus Phatthalung By Tangjai",d1:{},d2:{},pc:{o:1}},
+ {id:"5802105",hidden:true,pcName:"Yaowaroh Kasemsan",storeId:"22957",name:"ID771 : BN-Lotus-Mae Khari Phathalung",d1:{},d2:{},pc:{o:1,v:1}},
+ {id:"6202946",hidden:true,pcName:"Areeya Dachong",storeId:"12096",name:"Sun Mobile and Internet (AIS Buddy)",d1:{},d2:{},pc:{o:1}},
+ {id:"TEST",pcName:"AUTTHAPOL SRIJAN",storeId:"TEST",name:"ร้านทดสอบ (AUTTHAPOL)",d1:{},d2:{},pc:{o:1}},
+];
+STORES.forEach(s=>s.t=TARGETS[s.id]);
+const SEED_D1="2026-10-01",SEED_D2="2026-10-02";
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+// [key, ชื่อในหน้าเว็บ]
+const BRANDS=[["o","OPPO"],["v","vivo"],["s","Samsung"],["r","realme"],["m","Xiaomi"],["inf","Infinix"],["hon","Honor"],["tecno","TECNO"],["iph","iPhone"],["oth","Other"]];
+const LABEL={amount:"Amount",model:"All Model",a7:"A7Pro Series",a7pro:"A7PRO",a7max:"A7PRO max",reno:"Reno16 Series",renoF:"Reno16 F",renoStd:"Reno16",renoPro:"Reno16 Pro",find:"Find Series",iot:"All IOT",air5:"Air5 Series",
+ v70:"V70 Series (รวม)",v70fe:"V70 FE",v70x:"V70",v70a:"V70 8+256",v70b:"V70 12+256",v70c:"V70 12+512",v60:"V60",x300:"X300 Series",a57:"A57 Series",a37:"A37",minote:"Mi Note 17T",redmi:"Redmi Note 17",v80:"V80 Lite Series",v80a:"V80 Lite 6+128",v80b:"V80 Lite 6+256",allBrand:"All Brand"};
+BRANDS.forEach(b=>LABEL[b[0]]=b[1]);
+const INPUT_KEYS=["model","renoF","renoStd","renoPro","a7pro","a7max","find","iot","air5","v","v70fe","v70a","v70b","v70c","v60","x300","s","a57","a37","r","m","minote","redmi","inf","hon","tecno","iph","oth","v80a","v80b"];
+const DERIVED={reno:["renoF","renoStd","renoPro"],a7:["a7pro","a7max"],v70x:["v70a","v70b","v70c"],v70:["v70fe","v70a","v70b","v70c"],v80:["v80a","v80b"]};
+const TGT_SUBS={reno:["renoF","renoStd","renoPro"],a7:["a7pro","a7max"]};
+
+// ===== storage =====
+const mem={};
+function sget(k){try{const v=localStorage.getItem(k);return v==null?mem[k]??null:v}catch(e){return mem[k]??null}}
+function sset(k,v){mem[k]=v;try{localStorage.setItem(k,v)}catch(e){}}
+const pad=n=>String(n).padStart(2,"0");
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function fmtDate(s){const [y,m,d]=s.split("-").map(Number);return d+" "+MONTHS[m-1]+" "+y}
+function defaultMode(){const h=new Date().getHours();return h<13?"12.00":h<16?"15.00":h<19?"18.00":"close"}
+
+let store=null,S=null,mode="close",lastText="";
+const KEY="oppoform:v4:";
+function blank(){return Object.fromEntries(INPUT_KEYS.map(k=>[k,0]).concat([["amount",0],["reno",0]]))}
+function load(st){
+  const day=todayStr();let s=null;
+  try{s=JSON.parse(sget(KEY+st.id)||"null")}catch(e){}
+  if(!s){
+    s={day,today:blank(),base:blank(),pc:Object.assign({o:0,v:0,s:0,r:0,m:0,inf:0,hon:0,tecno:0,iph:0,oth:0},st.pc),dayoff:"N",rounds:{},seeded:false,confirmed:true};
+    if(day===SEED_D2){Object.assign(s.base,st.d1);Object.assign(s.today,st.d2);s.seeded=true;s.confirmed=false}
+    else if(day>SEED_D2&&day.slice(0,7)===SEED_D2.slice(0,7)){for(const o of [st.d1,st.d2])for(const k in o)s.base[k]=(s.base[k]||0)+o[k];s.seeded=true;s.confirmed=false}
+  }else if(s.day!==day){
+    const prev=s.day,gap=Math.round((new Date(day)-new Date(prev))/864e5);
+    if(s.lastClosed!==prev||gap>1)s.missed=prev;
+    const same=s.day.slice(0,7)===day.slice(0,7);
+    for(const k in s.today){s.base[k]=same?(s.base[k]||0)+(s.today[k]||0):0}
+    if(!same)s.base.reno=0;
+    s.today=blank();s.day=day;s.rounds={};s.dayoff="N";
+  }
+  for(const k of INPUT_KEYS.concat("amount","reno")){s.today[k]??=0;s.base[k]??=0}
+  return s;
+}
+function save(){sset(KEY+store.id,JSON.stringify(S))}
+
+// ===== ค่า =====
+// base.reno = ยอดสะสม Reno16 ที่ยังไม่ได้แยกรุ่น (จากรีพอร์ตก่อนใช้ฟอร์มนี้)
+function T(k){if(k==="o")return T("model");if(k==="allBrand")return BRANDS.reduce((a,b)=>a+T(b[0]),0);if(DERIVED[k])return DERIVED[k].reduce((a,x)=>a+T(x),0);return S.today[k]||0}
+function M(k){if(k==="o")return M("model");if(k==="allBrand")return BRANDS.reduce((a,b)=>a+M(b[0]),0);if(DERIVED[k])return DERIVED[k].reduce((a,x)=>a+M(x),0)+(k==="reno"?S.base.reno||0:0);return (S.base[k]||0)+(S.today[k]||0)}
+function tgt(k){const t=store.t;if(TGT_SUBS[k]){const v=TGT_SUBS[k].map(x=>t[x]).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0):(t[k]??null)}return t[k]??null}
+function pnum(n,d){if(!d)return "0";const v=Math.floor(n/d*10000+1e-6)/100;return Number.isInteger(v)?String(v):v.toFixed(2).replace(/0$/,"")}
+const pct=(n,d)=>pnum(n,d)+"%";
+const money=n=>Number(n||0).toLocaleString("en-US");
+
+// ===== วาดฟอร์ม =====
+const $=s=>document.querySelector(s);
+function stepRow(k,cls,label){
+  return `<div class="item ${cls||""}" data-row="${k}"><div class="lbl"><b>${label||LABEL[k]}</b><span class="meta" data-meta="${k}"></span></div>
+  <div class="step"><button type="button" data-dec="${k}" aria-label="ลด ${LABEL[k]}">−</button><output data-val="${k}">0</output><button type="button" data-inc="${k}" aria-label="เพิ่ม ${LABEL[k]}">+</button></div></div>`;
+}
+function autoRow(k,cls,label){
+  return `<div class="item ${cls||""}" data-row="${k}"><div class="lbl"><b>${label||LABEL[k]}</b><span class="meta" data-meta="${k}"></span></div><div class="auto"><span data-auto="${k}">0</span><small>รวมให้อัตโนมัติ</small></div></div>`;
+}
+function render(){
+  const close=mode==="close";let h="";
+  if(close){
+    h+=`<section class="sheet"><h2>OPPO · ยอดวันนี้</h2><p class="hint">กด + เมื่อขายได้ ยอดสะสม (MTD) และ % คิดให้เอง</p><div class="card">
+     <div class="item" data-row="amount"><div class="lbl"><b>Amount (บาท)</b><span class="meta" data-meta="amount"></span></div><input class="money" id="amount" inputmode="numeric" autocomplete="off" aria-label="ยอดเงินวันนี้"></div>
+     ${stepRow("model","","All Model (ทุกรุ่น OPPO)")}
+     ${stepRow("iot")}${stepRow("air5","sub")}
+    </div></section>`;
+  }
+  h+=`<section class="sheet"><h2>OPPO รุ่นโฟกัส · ยอดวันนี้</h2>${close?"":`<p class="hint">กด + เมื่อขายได้ ยอดสะสม (MTD) และ % คิดให้เอง</p>`}<div class="card">
+   ${autoRow("reno","total")}${stepRow("renoF","sub")}${stepRow("renoStd","sub")}${stepRow("renoPro","sub")}
+   ${autoRow("a7","total")}${stepRow("a7pro","sub")}${stepRow("a7max","sub")}
+   ${stepRow("find")}
+  </div></section>`;
+  if(close){
+    h+=`<section class="sheet"><h2>ทุกยี่ห้อในร้าน · ยอดวันนี้</h2><p class="hint">นับทุกเครื่องที่ร้านขายได้ ยอด OPPO ดึงจาก All Model</p><div class="card">
+     ${autoRow("o","","OPPO")}
+     ${stepRow("v")}${stepRow("v70fe","sub")}${stepRow("v70a","sub")}${stepRow("v70b","sub")}${stepRow("v70c","sub")}${stepRow("v60","sub")}${stepRow("x300","sub")}
+     ${stepRow("s")}${stepRow("a57","sub")}${stepRow("a37","sub")}
+     ${stepRow("r")}
+     ${stepRow("m")}${stepRow("minote","sub")}${stepRow("redmi","sub")}
+     ${stepRow("inf")}${stepRow("hon")}${stepRow("tecno")}${stepRow("iph")}${stepRow("oth")}
+     ${autoRow("allBrand","total","All Brand (ทั้งร้าน)")}
+    </div></section>`;
+  }else{
+    h+=`<section class="sheet"><h2>vivo · ยอดวันนี้</h2><div class="card">
+     ${stepRow("v70fe")}${stepRow("v70a")}${stepRow("v70b")}${stepRow("v70c")}${autoRow("v70x","total","V70 (รวม 3 สเปค)")}${stepRow("v60")}
+    </div></section>`;
+  }
+  h+=`<section class="sheet"><h2>ยอดจอง vivo V80 Lite</h2><p class="hint">ยอดจองไม่นับรวมใน vivo และ All Brand</p><div class="card">${stepRow("v80a")}${stepRow("v80b")}${autoRow("v80","total")}</div></section>`;
+  if(close){
+    h+=`<section class="sheet"><h2>พนักงาน PC และวันหยุด</h2><div class="card">
+      <div class="item"><div class="lbl"><b>Dayoff</b><span class="meta">วันนี้ PC ของ OPPO หยุดไหม</span></div><div class="toggle" id="dayoff"><button type="button" data-d="N">N ทำงาน</button><button type="button" data-d="Y">Y หยุด</button></div></div>
+      ${BRANDS.map(b=>`<div class="item"><div class="lbl"><b>PC ${b[1]}</b></div><div class="step"><button type="button" data-pcdec="${b[0]}" aria-label="ลด PC ${b[1]}">−</button><output data-pc="${b[0]}">0</output><button type="button" data-pcinc="${b[0]}" aria-label="เพิ่ม PC ${b[1]}">+</button></div></div>`).join("")}
+    </div></section>`;
+  }
+  const bk1=["model","renoF","renoStd","renoPro","a7pro","a7max","find","iot","air5"];
+  const bk2=["v","v70fe","v70a","v70b","v70c","v60","x300","s","a57","a37","r","m","minote","redmi","inf","hon","tecno","iph","oth","v80a","v80b"];
+  const inp=k=>`<label for="b_${k}">${LABEL[k]}</label><input id="b_${k}" data-base="${k}" type="number" min="0" inputmode="numeric">`;
+  h+=`<section class="sheet"><div class="card"><details class="base"><summary>ยอดสะสมถึงเมื่อวาน (แก้เมื่อยอดไม่ตรง)</summary>
+   <div class="basegrid"><span class="h">OPPO</span><label for="b_amount">Amount (บาท)</label><input id="b_amount" data-base="amount" inputmode="numeric">
+   ${bk1.map(inp).join("")}<label for="b_reno">Reno16 (ยังไม่แยกรุ่น)</label><input id="b_reno" data-base="reno" type="number" min="0" inputmode="numeric">
+   <span class="h">ทุกยี่ห้อ / ยอดจอง</span>${bk2.map(inp).join("")}
+   </div></details></div></section>`;
+  h+=`<div class="issues" id="issues"></div>`;
+  $("#form").innerHTML=h;
+  const a=$("#amount");if(a)a.value=S.today.amount?money(S.today.amount):"";
+  document.querySelectorAll("[data-base]").forEach(i=>{const k=i.dataset.base;i.value=k==="amount"?money(S.base.amount):S.base[k]});
+  $("#out").hidden=true;refresh();
+}
+const SHARE_KEYS=["o","v","s","r","m","inf","hon","tecno","iph","oth"];
+function metaHTML(k){
+  const m=k==="amount"?money(M(k)):M(k);
+  if(SHARE_KEYS.includes(k))return `สะสม ${m} · ส่วนแบ่ง <span class="p">${pct(M(k),M("allBrand"))}</span>`;
+  const hasT=["amount","model","iot","air5","find","reno","renoF","renoStd","renoPro","a7","a7pro","a7max"].includes(k);
+  if(!hasT)return `สะสม ${m}`;
+  const t=tgt(k);
+  if(t==null)return `สะสม ${m} · <span style="color:var(--warn)">ยังไม่มีเป้า</span>`;
+  return `สะสม ${m} · เป้า ${k==="amount"?money(t):t} · <span class="p">${pct(M(k),t)}</span>`;
+}
+function refresh(){
+  document.querySelectorAll("[data-val]").forEach(o=>o.textContent=T(o.dataset.val));
+  document.querySelectorAll("[data-auto]").forEach(o=>o.textContent=T(o.dataset.auto));
+  document.querySelectorAll("[data-pc]").forEach(o=>o.textContent=S.pc[o.dataset.pc]||0);
+  document.querySelectorAll("[data-meta]").forEach(m=>m.innerHTML=metaHTML(m.dataset.meta));
+  const dd=$("#dayoff");if(dd)dd.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.d===S.dayoff));
+  document.querySelectorAll("#mode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===mode));
+  $("#dateLbl").textContent="";
+  const miss=S.missed?`<div class="banner"><span>ยังไม่ได้ส่งรีพอร์ตปิดร้านผ่านหน้าเว็บตั้งแต่วันที่ ${fmtDate(S.missed)} ถ้าวันนั้นหรือวันหลังจากนั้นมียอดขาย ยอดจะยังไม่อยู่ใน MTD ให้เปิด “ยอดสะสมถึงเมื่อวาน” ด้านล่างแล้วแก้ให้ตรงก่อนส่ง</span><button class="btn ghost" id="okMiss" type="button">ตรวจยอดสะสมแล้ว</button></div>`:"";
+  $("#banner").innerHTML=miss+((S.seeded&&!S.confirmed)?`<div class="banner"><span>ยอด OPPO ตั้งต้นมาจากข้อมูล sell-out วันที่ 1–2 ต.ค. ยอดคู่แข่งยังเป็น 0 ถ้าหลังจากนั้นมียอดขายที่ยังไม่ได้กรอก ให้เปิด “ยอดสะสมถึงเมื่อวาน” ด้านล่างแล้วแก้ให้ตรงก่อน</span><button class="btn ghost" id="okBase" type="button">ยอดสะสมถูกต้องแล้ว</button></div>`:"");
+  const r=check();
+  $("#issues").innerHTML=r.e.map(x=>`<div class="issue e">${x.m}</div>`).join("")+r.w.map(x=>`<div class="issue w">${x.m}</div>`).join("");
+  document.querySelectorAll(".item.flag").forEach(i=>i.classList.remove("flag"));
+  r.e.forEach(x=>(x.k||[]).forEach(k=>{const el=document.querySelector(`[data-row="${k}"]`);if(el)el.classList.add("flag")}));
+  const st=$("#status");
+  if(r.e.length){st.className="st e";st.textContent=`ต้องแก้ ${r.e.length} จุดก่อนส่ง`;$("#gen").disabled=true}
+  else if(r.w.length){st.className="st w";st.textContent=`ส่งได้ · มี ${r.w.length} จุดให้ตรวจ`;$("#gen").disabled=false}
+  else{st.className="st ok";st.textContent="ข้อมูลถูกต้อง พร้อมส่ง";$("#gen").disabled=false}
+}
+
+// ===== ตรวจข้อมูล =====
+function check(){
+  const e=[],w=[],close=mode==="close";
+  if(close){
+    for(const [f,lab] of [[T,"วันนี้"],[M,"สะสม"]]){
+      const foc=f("a7")+f("reno")+f("find");
+      if(foc>f("model"))e.push({m:`รุ่นโฟกัส (Reno16 + A7Pro + Find) ${lab}รวม ${foc} เครื่อง มากกว่า All Model ${f("model")} เครื่อง ให้เพิ่ม All Model หรือแก้รุ่นโฟกัส`,k:["model"]});
+      if(f("air5")>f("iot"))e.push({m:`Air5 ${lab}มากกว่า All IOT`,k:["iot"]});
+      if(f("v70")+f("v60")+f("x300")>f("v"))e.push({m:`V70 + V60 + X300 ${lab}รวม ${f("v70")+f("v60")+f("x300")} เครื่อง มากกว่ายอด vivo ${f("v")} เครื่อง`,k:["v"]});
+      if(f("a57")+f("a37")>f("s"))e.push({m:`A57 + A37 ${lab}มากกว่ายอด Samsung`,k:["s"]});
+      if(f("minote")+f("redmi")>f("m"))e.push({m:`Mi Note 17T + Redmi Note 17 ${lab}มากกว่ายอด Xiaomi`,k:["m"]});
+    }
+    if(T("model")+T("iot")>0&&!S.today.amount)e.push({m:"มียอดขายเป็นเครื่อง แต่ Amount วันนี้ยังเป็น 0 ให้ใส่ยอดเงิน",k:["amount"]});
+    if(S.today.amount>0&&T("model")===0&&T("iot")===0)w.push({m:"มี Amount แต่ยังไม่มียอดเครื่อง ตรวจ All Model หรือ IOT อีกครั้ง"});
+    if(T("model")<T("a7")+T("reno")+T("find"))void 0;
+  }else{
+    const prev=Object.entries(S.rounds||{}).filter(([r])=>r<mode).sort().pop();
+    if(prev){const low=INPUT_KEYS.filter(k=>(S.today[k]||0)<(prev[1][k]||0));
+      if(low.length)w.push({m:`ยอดบางรายการน้อยกว่ารอบ ${prev[0]} (${low.map(k=>LABEL[k]).join(", ")}) ยอดทุกรอบเป็นยอดสะสม ต้องไม่ลดลง ถ้าแก้ที่กรอกผิดไว้ก็ส่งได้`})}
+  }
+  const miss=["reno","a7","find"].filter(k=>tgt(k)==null).map(k=>LABEL[k]);
+  if(miss.length)w.push({m:`ยังไม่มีเป้า ${miss.join(", ")} ในรีพอร์ตจะแสดงเป้าเป็น 0`});
+  return {e,w};
+}
+
+// ===== สร้างข้อความ (รูปแบบตามฟอร์มที่ใช้ในกลุ่ม) =====
+const f4=k=>{const t=tgt(k);return `${T(k)}/${M(k)}/${t??0}/${pct(M(k),t)}`};
+const f2=k=>`${T(k)}/${M(k)}`;
+function build(){
+  const d=fmtDate($("#date").value||S.day);
+  if(mode!=="close"){
+    return [
+`Report ${mode}`,"",`Shop Name : ${store.name}`,"",
+`Reno16 Series : ${f4("reno")}`,`Reno16 F : ${f4("renoF")}`,`Reno16 : ${f4("renoStd")}`,`Reno16 Pro : ${f4("renoPro")}`,"",
+`A7Pro Series : ${f4("a7")}`,`A7PRO : ${f4("a7pro")}`,`A7PRO max : ${f4("a7max")}`,"",
+`Find Series : ${f4("find")}`,"",
+"------------------------","",
+"vivo",`V70 FE : ${f2("v70fe")}`,`V70 : ${f2("v70x")}`,`V60 : ${f2("v60")}`,"",
+`V80 Lite Series : ${f2("v80")}`,`V80 Lite 6+128 : ${f2("v80a")}`,`V80 Lite 6+256 : ${f2("v80b")}`
+    ].join("\n");
+  }
+  const t=store.t,AB=M("allBrand");
+  const amt=`${money(S.today.amount)}/${money(M("amount"))}/${money(t.amount??0)}/${pct(M("amount"),t.amount)}`;
+  const br=(k,lead,pcAfter)=>`${lead}${T(k)}/${M(k)}/${AB}/${pct(M(k),AB)}${pcAfter}(PC=${S.pc[k]||0})`;
+  return [
+`Store ID : ${store.storeId}`,`Shop Name: ${store.name}`,`Date：${d}`,`Dayoff  : ${S.dayoff}`,
+"-------------------------------",`Amount : ${amt}`,
+"-------------------------------",`All Model : ${f4("model")}`,
+"-----------------------------",`All IOT: ${f4("iot")}`,`Air5 series:  ${f4("air5")}`,
+"-------------------------------",`Reno16 Series  : ${f4("reno")}`,
+"-------------------------------",`FindX9 series : ${f4("find")}`,
+"-------------------------------","V70 series ",`V70 FE : ${f2("v70fe")}`,`V70 8+256 : ${f2("v70a")}`,`V70 12+256 : ${f2("v70b")}`,`V70 12+512 : ${f2("v70c")}`,
+"————————————————",`All Brand: ${T("allBrand")}/${AB}`,
+br("o","O : "," "),br("v","V : "," "),`V 70 series : ${f2("v70")}`,`X300 series : ${f2("x300")}`,
+br("s","S = "," "),`A57 series = ${f2("a57")}`,`A37  : ${f2("a37")}`,
+br("r","RM = "," "),
+`Mi= ${T("m")}/${M("m")}/${AB}/${pnum(M("m"),AB)} % (PC=${S.pc.m||0})`,`Mi Note 17T series : ${f2("minote")}`,
+br("inf","Infinix = "," "),br("hon","Honer = "," "),br("tecno","TECNO = "," "),br("iph","iPhone ="," "),br("oth","Other = "," "),
+"----------------------------------","Pre-order ",`V80 Lite 6+128 : ${f2("v80a")}`,`V80 Lite 6+256: ${f2("v80b")}`,
+"————————————————",`Redmi Note 17 Series =${M("redmi")}`
+  ].join("\n");
+}
+
+// ===== events =====
+function selectStore(id){store=STORES.find(s=>s.id===id&&!s.hidden)||STORES.find(s=>s.id===firstPC);sset("oppoform:pc",store.id);S=load(store);$("#store").value=store.id;$("#date").value=S.day;save();render()}
+$("#store").innerHTML=STORES.filter(s=>!s.hidden).sort((a,b)=>((b.id==="TEST")-(a.id==="TEST"))||a.pcName.localeCompare(b.pcName,"en")).map(s=>`<option value="${s.id}">${s.pcName}</option>`).join("");
+$("#store").addEventListener("change",e=>selectStore(e.target.value));
+$("#form").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.inc){S.today[b.dataset.inc]++}
+  else if(b.dataset.dec){const k=b.dataset.dec;S.today[k]=Math.max(0,S.today[k]-1)}
+  else if(b.dataset.pcinc){S.pc[b.dataset.pcinc]=(S.pc[b.dataset.pcinc]||0)+1}
+  else if(b.dataset.pcdec){const k=b.dataset.pcdec;S.pc[k]=Math.max(0,(S.pc[k]||0)-1)}
+  else if(b.dataset.d){S.dayoff=b.dataset.d}
+  else return;
+  save();refresh();$("#out").hidden=true;
+});
+$("#banner").addEventListener("click",e=>{if(e.target.id==="okBase"){S.confirmed=true;save();refresh()}if(e.target.id==="okMiss"){delete S.missed;save();refresh()}});
+const num=v=>Math.max(0,parseInt(String(v).replace(/[^0-9]/g,""),10)||0);
+$("#form").addEventListener("input",e=>{
+  const el=e.target;
+  if(el.id==="amount"){S.today.amount=num(el.value)}
+  else if(el.dataset.base){S.base[el.dataset.base]=num(el.value)}
+  else return;
+  save();refresh();$("#out").hidden=true;
+});
+$("#form").addEventListener("change",e=>{const el=e.target;if(el.id==="amount"||el.dataset.base==="amount"){el.value=money(num(el.value))}});
+$("#gen").addEventListener("click",()=>{
+  if(check().e.length)return;
+  lastText=build();$("#txt").textContent=lastText;
+  $("#line").href="https://line.me/R/share?text="+encodeURIComponent(lastText);
+  S.lastClosed=S.day;save();
+  $("#out").hidden=false;$("#copyMsg").textContent="ถ้ากดส่งใน LINE แล้วไม่เปิด ให้กดคัดลอก แล้วไปวางในกลุ่ม LINE เอง";
+  $("#out").scrollIntoView({behavior:"smooth",block:"start"});
+});
+$("#copy").addEventListener("click",()=>{
+  const done=()=>{$("#copyMsg").textContent="คัดลอกแล้ว ไปวางในกลุ่ม LINE ได้เลย"};
+  const fb=()=>{const r=document.createRange();r.selectNodeContents($("#txt"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("#copyMsg").textContent="เลือกข้อความไว้แล้ว กดค้างแล้วเลือกคัดลอก"};
+  try{navigator.clipboard.writeText(lastText).then(done,fb)}catch(err){fb()}
+});
+const firstPC=[...$("#store").options].map(o=>o.value).find(v=>v!=="TEST")||$("#store").options[0].value;
+selectStore(sget("oppoform:pc")||firstPC);
+</script>
+</body>
+</html>
